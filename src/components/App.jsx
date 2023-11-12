@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Title } from './AppStyles'; 
+import React from 'react';
+import { Container, Title } from './AppStyles';
 import ContactForm from './ContactForm/ContactForm';
 import ContactList from './ContactList/ContactList';
 import Filter from './Filter/Filter';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  addContact,
+  deleteContact,
+  updateFilter,
+} from './redux/contactsSlice';
 
 const App = () => {
-  const [contacts, setContacts] = useState([]);
-  const [filter, setFilter] = useState('');
+  const dispatch = useDispatch();
+  const contacts = useSelector((state) => state.contacts.contacts);
+  const filter = useSelector((state) => state.contacts.filter);
 
-  useEffect(() => {
-    const stringifiedContacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(stringifiedContacts) || [];
-    setContacts(parsedContacts);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
-
-  const addContact = (name, number) => {
-    const isNameExists = contacts.some(contact => contact.name === name);
+  const addContactHandler = (name, number) => {
+    const isNameExists = contacts.some((contact) => contact.name === name);
 
     if (isNameExists) {
       alert("Це ім'я вже існує в телефонній книзі.");
@@ -32,20 +29,20 @@ const App = () => {
       number,
     };
 
-    setContacts([...contacts, newContact]);
+    dispatch(addContact(newContact));
   };
 
-  const deleteContact = contactId => {
-    setContacts(contacts.filter(contact => contact.id !== contactId));
+  const deleteContactHandler = (contactId) => {
+    dispatch(deleteContact(contactId));
   };
 
-  const handleFilterChange = e => {
-    setFilter(e.target.value);
+  const handleFilterChange = (e) => {
+    dispatch(updateFilter(e.target.value));
   };
 
   const getFilteredContacts = () => {
     const normalizedFilter = filter.toLowerCase();
-    return contacts.filter(contact =>
+    return contacts.filter((contact) =>
       contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
@@ -55,17 +52,15 @@ const App = () => {
   return (
     <Container>
       <Title>Phonebook</Title>
-      <ContactForm onAddContact={addContact} />
+      <ContactForm onAddContact={addContactHandler} />
       <Title>Contacts</Title>
       <Filter filter={filter} onFilterChange={handleFilterChange} />
       <ContactList
         contacts={filteredContacts}
-        onDeleteContact={deleteContact}
+        onDeleteContact={deleteContactHandler}
       />
     </Container>
   );
 };
-
-
 
 export default App;
